@@ -818,9 +818,15 @@ local espT = 0
 local vp   = Camera.ViewportSize
 Camera:GetPropertyChangedSignal("ViewportSize"):Connect(function() vp = Camera.ViewportSize end)
 
+local espFrameSkip = 0
 RunSvc.RenderStepped:Connect(function(dt)
     if not espCfg.enabled then return end
-    espT += dt
+    -- 매 3프레임에 1번만 업데이트 (60fps → 20fps) — 타임아웃 방지
+    espFrameSkip += 1
+    if espFrameSkip < 3 then return end
+    espFrameSkip = 0
+
+    espT += dt * 3  -- dt 보정 (3프레임 스킵했으므로)
     local myHRP   = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     local rainbow = espCfg.rainbowESP and Color3.fromHSV((espT*0.25)%1, 1, 1) or nil
 
